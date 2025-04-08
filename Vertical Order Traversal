@@ -1,0 +1,68 @@
+ Problem statement
+
+Given a binary tree, return the vertical order traversal of the values of the nodes of the given tree.
+
+For each node at position (X, Y), (X-1, Y-1) will be its left child position while (X+1, Y-1) will be the right child position.
+
+Running a vertical line from X = -infinity to X = +infinity, now whenever this vertical line touches some nodes, we need to add those values of the nodes in order starting from top to bottom with the decreasing ‘Y’ coordinates.
+Note:
+
+If two nodes have the same position, then the value of the node that is added first will be the value that is on the left side.
+
+Code:
+
+from collections import defaultdict, deque
+
+# Binary Tree Node structure
+class BinaryTreeNode:
+    def __init__(self, data):
+        self.data = data
+        self.left = None
+        self.right = None
+
+def verticalOrderTraversal(root):
+    if not root:
+        return []
+
+    # Stores all nodes grouped by x-coordinate
+    column_table = defaultdict(list)
+
+    # Queue for BFS traversal, holds tuples of (node, x, y)
+    q = deque()
+    q.append((root, 0, 0))  # (node, x, y)
+
+    # Track min and max x-coordinates for left-to-right ordering
+    min_x = max_x = 0
+
+    while q:
+        node, x, y = q.popleft()
+
+        # Store the node with its y (depth) to sort later
+        column_table[x].append((y, node.data))
+
+        # Update horizontal bounds
+        min_x = min(min_x, x)
+        max_x = max(max_x, x)
+
+        # Left child ? x - 1, y + 1
+        if node.left:
+            q.append((node.left, x - 1, y + 1))
+
+        # Right child ? x + 1, y + 1
+        if node.right:
+            q.append((node.right, x + 1, y + 1))
+
+    result = []
+
+    # Process columns from leftmost x to rightmost x
+    for x in range(min_x, max_x + 1):
+        column = column_table[x]
+
+        # Sort by y (depth), then value for tie-breaking
+        column.sort(key=lambda pair: (pair[0], pair[1]))
+
+        # Extract just the node values
+        values = [val for y, val in column]
+        result.append(values)
+
+    return result
